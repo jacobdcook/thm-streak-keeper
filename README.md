@@ -210,75 +210,56 @@ type tryhackmebot.log
 
 ## Run Without Your Computer (GitHub Actions)
 
-If your computer isn't always on, you can run the streak keeper for free using GitHub Actions. The workflow runs daily on GitHub's servers — no local machine needed at run time.
+If your computer isn't always on, you can run the streak keeper for free using GitHub Actions. **We use cookies only** (not the full Firefox profile) so the secret stays small and fits GitHub's 64 KB limit.
 
 ### How it works
 
-1. You run `save_session.py` **locally once** to log in and create `firefox_thm_profile/`.
-2. You export that profile as a base64 string and store it as a GitHub secret.
-3. A GitHub Actions workflow decodes the profile, runs the streak bot headless, and uploads logs.
+1. You run `save_session.py` locally and log in (creates `firefox_thm_profile/`).
+2. You run `export_cookies_for_cloud.py` to write `thm_cookies.json` (a few KB).
+3. You base64 that file and store it as the secret `THM_COOKIES_B64`.
+4. The workflow decodes the secret to `thm_cookies.json`, runs the bot with cookies, and uploads logs.
 
 ### Setup
 
-**Step 1 — Fork or clone this repo to your GitHub account.**
+**Step 1** — Save your session locally (see above): run `save_session.py`, log in, type `done`.
 
-**Step 2 — Save your session locally** (as described above):
-
-```bash
-.venv/bin/python3 save_session.py
-```
-
-Log in, type `done`.
-
-**Step 3 — Export the profile as base64:**
-
-Linux / macOS:
+**Step 2** — Export cookies (small file, fits in a secret):
 
 ```bash
-tar czf - firefox_thm_profile | base64 -w0 > profile.b64
+.venv/bin/python3 export_cookies_for_cloud.py
 ```
 
-Windows (Git Bash or WSL):
+**Step 3** — Encode for the secret:
 
 ```bash
-tar czf - firefox_thm_profile | base64 -w0 > profile.b64
+base64 -w0 thm_cookies.json > cookies.b64
 ```
 
-Windows (PowerShell):
+**Step 4** — Add the secret:
 
-```powershell
-tar czf profile.tar.gz firefox_thm_profile
-[Convert]::ToBase64String([IO.File]::ReadAllBytes("profile.tar.gz")) | Set-Content profile.b64 -NoNewline
-```
+1. Open your repo → **Settings** → **Secrets and variables** → **Actions**.
+2. **New repository secret**.
+3. Name: `THM_COOKIES_B64`
+4. Value: paste the **entire** contents of `cookies.b64` (one line, a few thousand characters — much smaller than the old profile).
+5. **Add secret**.
 
-**Step 4 — Add the secret to your repo:**
-
-1. Open your repo on GitHub.
-2. Go to **Settings** > **Secrets and variables** > **Actions**.
-3. Click **New repository secret**.
-4. Name: `THM_PROFILE_B64`
-5. Value: paste the contents of `profile.b64`.
-6. Click **Add secret**.
-
-**Step 5 — Enable the workflow:**
-
-Go to the **Actions** tab in your repo. If prompted, enable workflows. The `THM Streak Keeper (Cloud)` workflow will run daily. You can also trigger it manually with **Run workflow**.
+**Step 5** — **Actions** tab → enable workflows if asked → **THM Streak Keeper (Cloud)** → **Run workflow** to test.
 
 ### When your session expires
 
-If the bot logs show `[!] Not logged in`, your session has expired. Repeat steps 2-4: run `save_session.py`, export the profile, and update the `THM_PROFILE_B64` secret.
+If logs show `[!] Not logged in`, run `save_session.py` again, then `export_cookies_for_cloud.py`, then `base64 -w0 thm_cookies.json > cookies.b64`, and update the `THM_COOKIES_B64` secret with the new `cookies.b64` contents.
 
-> **Note:** GitHub Actions runs from different IPs each time, so TryHackMe sessions may expire faster than on your local machine. If this happens frequently, the local cron approach is more reliable.
+> **Note:** GitHub Actions runs from different IPs each time, so TryHackMe sessions may expire faster than on your local machine. If that happens often, use local cron instead.
 
 ## Session Expired?
 
-If you see `[!] Not logged in`, your TryHackMe session expired. Just run `save_session.py` again, log in, and type `done`. For the GitHub Actions option, also re-export and re-upload the profile secret.
+If you see `[!] Not logged in`, your TryHackMe session expired. Run `save_session.py` again, log in, and type `done`. For GitHub Actions, also re-export cookies and update the `THM_COOKIES_B64` secret.
 
 ## Important
 
 - **Join the [polkit room](https://tryhackme.com/room/polkit)** on TryHackMe before running the bot.
 - For local runs, your computer needs to be on at the scheduled time.
-- For GitHub Actions runs, your computer does not need to be on — but you need to re-upload the session when it expires.
+- For GitHub Actions runs, your computer does not need to be on — but you need to re-upload the cookies when the session expires.
 - This is for **maintaining** a streak on days you aren't doing rooms. It's not a replacement for actually learning.
 
 ## Files
@@ -286,7 +267,8 @@ If you see `[!] Not logged in`, your TryHackMe session expired. Just run `save_s
 | File | Purpose |
 |---|---|
 | `save_session.py` | Opens Firefox for you to log in. Saves the session. |
-| `main_local.py` | Runs the streak keeper using the saved session. |
+| `export_cookies_for_cloud.py` | Exports cookies to `thm_cookies.json` for GitHub Actions (small secret). |
+| `main_local.py` | Runs the streak keeper (profile or cookies). |
 | `keepstreak.py` | The logic: reset room, click Check, read streak. |
 | `run_thm_streak.sh` | Shell wrapper for cron (Linux/macOS, headless). |
 | `setup_venv.sh` | Creates venv and installs deps (Linux/macOS). |
