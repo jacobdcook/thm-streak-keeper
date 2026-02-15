@@ -9,6 +9,7 @@ import time
 import datetime
 from selenium import webdriver
 from selenium.webdriver.firefox.options import Options
+from selenium.webdriver.firefox.service import Service
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 PROFILE_DIR = os.path.join(SCRIPT_DIR, "firefox_thm_profile")
@@ -86,8 +87,13 @@ def main():
     if firefox_bin:
         options.binary_location = firefox_bin
 
+    service = None
+    geckodriver_path = os.environ.get("GECKODRIVER_PATH")
+    if geckodriver_path:
+        service = Service(executable_path=geckodriver_path)
+
     try:
-        driver = webdriver.Firefox(options=options)
+        driver = webdriver.Firefox(service=service, options=options) if service else webdriver.Firefox(options=options)
     except Exception as e:
         log(f"[!] Error starting Firefox: {e}")
         sys.exit(1)

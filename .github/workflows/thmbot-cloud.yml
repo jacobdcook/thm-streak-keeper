@@ -58,6 +58,7 @@ jobs:
           DISPLAY: ':99'
           THM_HEADLESS: '1'
           FIREFOX_BIN: 'firefox'
+          GECKODRIVER_PATH: '/usr/local/bin/geckodriver'
         continue-on-error: true
 
       - name: Upload logs
