@@ -1,0 +1,9 @@
+firefox_thm_profile/
+thm_cookies.json
+account.conf
+tryhackmebot.log
+geckodriver.log
+.venv/
+__pycache__/
+*.png
+*.pyc
