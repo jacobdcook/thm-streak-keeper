@@ -1,0 +1,61 @@
+name: THM Streak Keeper (Cloud)
+
+on:
+  schedule:
+    - cron: '0 23 * * *'
+  workflow_dispatch:
+
+jobs:
+  maintain-streak:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install Firefox and geckodriver
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y firefox xvfb
+          wget -q https://github.com/mozilla/geckodriver/releases/download/v0.35.0/geckodriver-v0.35.0-linux64.tar.gz
+          tar -xzf geckodriver-v0.35.0-linux64.tar.gz
+          chmod +x geckodriver
+          sudo mv geckodriver /usr/local/bin/
+
+      - name: Install FFmpeg
+        run: sudo apt-get install -y ffmpeg
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Restore Firefox profile from secret
+        run: |
+          echo "${{ secrets.THM_PROFILE_B64 }}" | base64 -d | tar xzf -
+
+      - name: Setup virtual display
+        run: |
+          Xvfb :99 &
+          export DISPLAY=:99
+
+      - name: Run streak keeper
+        run: |
+          timeout 12m python main_local.py
+        env:
+          DISPLAY: ':99'
+          THM_HEADLESS: '1'
+        continue-on-error: true
+
+      - name: Upload logs
+        uses: actions/upload-artifact@v4
+        with:
+          name: thm-bot-logs
+          path: |
+            tryhackmebot.log
+            *.png
+          retention-days: 7
