@@ -34,9 +34,9 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Restore Firefox profile from secret
+      - name: Restore cookies from secret
         run: |
-          echo "${{ secrets.THM_PROFILE_B64 }}" | base64 -d | tar xzf -
+          echo "${{ secrets.THM_COOKIES_B64 }}" | base64 -d > thm_cookies.json
 
       - name: Setup virtual display
         run: |
