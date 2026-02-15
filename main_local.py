@@ -82,6 +82,9 @@ def main():
         options.add_argument("--headless")
     options.set_preference("media.volume_scale", "0.0")
     options.set_preference("dom.webnotifications.enabled", False)
+    firefox_bin = os.environ.get("FIREFOX_BIN")
+    if firefox_bin:
+        options.binary_location = firefox_bin
 
     try:
         driver = webdriver.Firefox(options=options)
