@@ -21,7 +21,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y xvfb libgtk-3-0 libdbus-glib-1-2 libxt6
-          wget -q "https://download.mozilla.org/?product=firefox-latest-ssl&os=linux64&lang=en-US" -O firefox.tar.bz2
+          curl -sL -o firefox.tar.bz2 "https://download.mozilla.org/?product=firefox-latest-ssl&os=linux64&lang=en-US" -H "User-Agent: Mozilla/5.0 (X11; Linux x86_64)"
           tar xjf firefox.tar.bz2
           sudo mv firefox /opt/firefox
           sudo ln -sf /opt/firefox/firefox /usr/local/bin/firefox
